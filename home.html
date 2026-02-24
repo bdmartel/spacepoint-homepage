@@ -577,11 +577,11 @@
       /* ── Futuristic typewriter ── */
       .hu-h1.tw-ready { opacity: 1; }
       .hu-h1 .tw-char {
-        color: transparent;
+        opacity: 0;
         display: inline;
       }
       .hu-h1 .tw-char.tw-vis {
-        color: initial;
+        opacity: 1;
         animation: tw-glow 0.2s ease-out forwards;
       }
       .hu-h1 .tw-cursor {
@@ -2443,52 +2443,42 @@
       if (!h1) return;
 
       var text = h1.textContent.trim();
-      h1.textContent = '';
 
-      // pre-render all chars so line breaks are established upfront
-      var spans = [];
-      for (var i = 0; i < text.length; i++) {
-        var sp = document.createElement('span');
-        sp.className = 'tw-char';
-        sp.textContent = text[i];
-        h1.appendChild(sp);
-        spans.push(sp);
-      }
+      // lock height so layout doesn't shift as lines appear
+      h1.style.minHeight = h1.offsetHeight + 'px';
+      h1.textContent = '';
 
       var cursor = document.createElement('span');
       cursor.className = 'tw-cursor';
       cursor.textContent = '\u200B';
-      // start cursor before the first char
-      h1.insertBefore(cursor, spans[0]);
+      h1.appendChild(cursor);
 
       h1.classList.add('tw-ready');
 
       var idx = 0;
+      var baseDelay = 18;
+      var startDelay = 200;
 
       function typeNext() {
-        if (idx >= spans.length) {
+        if (idx >= text.length) {
           cursor.classList.add('tw-done');
+          h1.style.minHeight = '';
           var body = h1.closest('.hu-body');
           if (body) body.classList.add('tw-complete');
           return;
         }
-        spans[idx].classList.add('tw-vis');
+        var ch = text[idx];
+        var sp = document.createElement('span');
+        sp.className = 'tw-char tw-vis';
+        sp.textContent = ch;
+        h1.insertBefore(sp, cursor);
         idx++;
 
-        // move cursor right after the char just revealed
-        var next_span = spans[idx]; // next untyped char (or undefined at end)
-        if (next_span) {
-          h1.insertBefore(cursor, next_span);
-        } else {
-          h1.appendChild(cursor); // after last char
-        }
-
-        var ch = spans[idx - 1].textContent;
-        var next = (ch === ' ') ? 3 : 18 + Math.floor(Math.random() * 10 - 3);
+        var next = (ch === ' ') ? 3 : baseDelay + Math.floor(Math.random() * 10 - 3);
         setTimeout(typeNext, next);
       }
 
-      setTimeout(typeNext, 200);
+      setTimeout(typeNext, startDelay);
     })();
   </script>
 
