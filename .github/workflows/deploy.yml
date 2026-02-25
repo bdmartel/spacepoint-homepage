@@ -18,4 +18,4 @@ jobs:
           script: |
             cd /var/www/spacepoint-homepage
             git pull origin main
-            sudo systemctl reload nginx
+            sudo systemctl restart nginx
